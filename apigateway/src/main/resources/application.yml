@@ -1,0 +1,47 @@
+server:
+    port: 8888
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: http://localhost:8761/eureka/
+        enabled: false
+        register-with-eureka: true
+        fetch-registry: true
+    instance:
+        hostname: localhost
+spring:
+    data:
+        redis:
+            host: localhost
+            port: 6379
+    application:
+        name: api-gateway
+    cloud:
+        gateway:
+            discovery:
+                locator:
+                    enabled: true
+            routes:
+                - id: auth
+                  uri: lb://AUTH-SERVER
+                  predicates:
+                      - Path=/auth/**
+                  filters:
+                      - StripPrefix=1
+                - id: common
+                  uri: http://localhost:8088
+                  predicates:
+                      - Path=/service/**
+                  filters:
+                      - StripPrefix=1
+                      - Authorization
+                      #   - RequestHashing=SHA-256
+                      - name: RequestRateLimiter
+                        args:
+                            redis-rate-limiter.replenishRate: 1
+                            redis-rate-limiter.burstCapacity: 1
+                            redis-rate-limiter.requestedTokens: 1
+                            key-resolver: "#{@userKeyResolver}"
+
+jwt:
+    secret: agbuyfh98juibhjeiu1fsbhiue9ashyb
