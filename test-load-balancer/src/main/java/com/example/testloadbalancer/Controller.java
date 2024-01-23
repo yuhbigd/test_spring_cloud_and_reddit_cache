@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.Builder;
+import java.io.Serializable;
 import java.util.*;
 import reactor.core.publisher.Mono;
 
@@ -25,9 +26,10 @@ public class Controller {
     private RedisTemplate<String, Object> redisTemplate;
     private final Service2 service2;
 
-    public Controller(ReactiveDiscoveryClient reactiveDiscoveryClient, Builder loadBalancedWebClientBuilder,
-            ReactorLoadBalancerExchangeFilterFunction lbFunction, RedisTemplate<String, Object> redisTemplate,
-            Service2 service2) {
+    public Controller(ReactiveDiscoveryClient reactiveDiscoveryClient,
+            Builder loadBalancedWebClientBuilder,
+            ReactorLoadBalancerExchangeFilterFunction lbFunction,
+            RedisTemplate<String, Object> redisTemplate, Service2 service2) {
         this.reactiveDiscoveryClient = reactiveDiscoveryClient;
         this.loadBalancedWebClientBuilder = loadBalancedWebClientBuilder;
         this.lbFunction = lbFunction;
@@ -44,10 +46,11 @@ public class Controller {
     public Mono<String> hi2() {
         return Mono.just("HI - 2");
     }
-
+    // if not specify ->  store as whole json
     @PostMapping("/hi")
     @Cacheable(cacheNames = "hiCache", key = "#requestBody.name")
-    public Mono<List<Bod>> handlePostRequest(@RequestBody Bod requestBody) throws InterruptedException {
+    public Mono<List<Bod>> handlePostRequest(@RequestBody Bod requestBody)
+            throws InterruptedException {
         Thread.sleep(2000);
         List<Bod> a = new ArrayList<>();
         a.add(requestBody);
@@ -57,7 +60,8 @@ public class Controller {
 
 }
 
-class Bod {
+
+class Bod implements Serializable {
     private String name;
 
     public String getName() {
@@ -68,8 +72,7 @@ class Bod {
         this.name = name;
     }
 
-    public Bod() {
-    }
+    public Bod() {}
 
     public Bod(String name) {
         this.name = name;
@@ -79,4 +82,30 @@ class Bod {
     public String toString() {
         return "Bod [name=" + name + "]";
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Bod other = (Bod) obj;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
+    }
+
 }

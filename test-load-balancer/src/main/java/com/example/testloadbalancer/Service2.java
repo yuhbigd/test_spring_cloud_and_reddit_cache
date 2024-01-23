@@ -20,9 +20,8 @@ public class Service2 {
         a.setPath(path);
         repo.save(a);
         redisTemplate.opsForValue().set(path + "---))", a);
-        if (1 == 1) {
-            throw new RuntimeCryptoException();
-
-        }
+        // if (1 == 1) {
+        //     throw new RuntimeCryptoException();
+        // }
     }
 }
